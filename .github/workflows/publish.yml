@@ -94,6 +94,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Set CUDA and PyTorch versions
+        if: ${{ runner.os == 'Linux' }} 
         run: |
           echo "MATRIX_CUDA_VERSION=$(echo ${{ matrix.cuda-version }} | awk -F \. {'print $1 $2'})" >> $GITHUB_ENV
           echo "MATRIX_TORCH_VERSION=$(echo ${{ matrix.torch-version }} | awk -F \. {'print $1 "." $2'})" >> $GITHUB_ENV
@@ -143,6 +144,24 @@ jobs:
           python -c "from torch.utils import cpp_extension; print (cpp_extension.CUDA_HOME)"
         shell:
           bash
+      
+      - name: Setup MSVC
+        if: ${{ runner.os == 'Windows' }}
+        uses: ilammy/msvc-dev-cmd@v1
+    
+      - name: Configure Pagefile
+        if: ${{ runner.os == 'Windows' }}
+          # windows runners will OOM with many CUDA architectures
+          # we cheat here with a page file
+        uses: al-cheb/configure-pagefile-action@v1.3
+        with:
+          minimum-size: 8GB
+    
+        # really unfortunate: https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash
+      - name: Remove link.exe
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: rm /usr/bin/link
 
       - name: Build wheel
         run: |
