@@ -158,10 +158,12 @@ jobs:
           minimum-size: 8GB
     
         # really unfortunate: https://github.com/ilammy/msvc-dev-cmd#name-conflicts-with-shell-bash
-      - name: Remove link.exe
+      - name: Remove link.exe and set DISTUTILS_USE_SDK=1
         if: ${{ runner.os == 'Windows' }}
         shell: bash
-        run: rm /usr/bin/link
+        run: |
+          rm /usr/bin/link
+          export DISTUTILS_USE_SDK=1
 
       - name: Build wheel
         shell: bash
